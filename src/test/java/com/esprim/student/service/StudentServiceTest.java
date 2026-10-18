@@ -70,4 +70,24 @@ class StudentServiceTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("vide");
     }
+
+    @Test
+    void getStudentByEmailReturnsStudentWhenFound() {
+        Student student = new Student("Amina", "Benali", "amina.benali@esprim.ma", null);
+        when(studentRepository.findByEmail("amina.benali@esprim.ma")).thenReturn(Optional.of(student));
+
+        Student found = studentService.getStudentByEmail("amina.benali@esprim.ma");
+
+        assertThat(found).isNotNull();
+        assertThat(found.getEmail()).isEqualTo("amina.benali@esprim.ma");
+    }
+
+    @Test
+    void getStudentByEmailReturnsNullWhenAbsent() {
+        when(studentRepository.findByEmail("inconnu@esprim.ma")).thenReturn(Optional.empty());
+
+        Student found = studentService.getStudentByEmail("inconnu@esprim.ma");
+
+        assertThat(found).isNull();
+    }
 }
