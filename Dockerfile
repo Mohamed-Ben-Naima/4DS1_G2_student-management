@@ -1,14 +1,13 @@
-# Image de base : JRE 17 uniquement
-FROM eclipse-temurin:17-jre
+# Image de l'application student-management (Spring Boot, Java 17)
+FROM eclipse-temurin:17-jre-alpine
+LABEL maintainer="equipe-devops@esprit.tn"
 
-# Répertoire de travail
 WORKDIR /app
 
-# Copie du jar produit par Maven
+# Le jar est produit par "mvn package" dans le dossier target/
 COPY target/student-management-0.0.1-SNAPSHOT.jar app.jar
 
-# Port d'écoute de l'application
-EXPOSE 8080
+# Port defini dans application.properties (server.port=8089)
+EXPOSE 8089
 
-# Commande de démarrage (forme exec)
 ENTRYPOINT ["java", "-jar", "app.jar"]
