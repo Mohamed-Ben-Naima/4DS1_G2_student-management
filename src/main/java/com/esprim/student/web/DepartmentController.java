@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.esprim.student.entity.Department;
+import com.esprim.student.service.IDepartmentService;
 import com.esprim.student.service.StudentService;
 
 @RestController
@@ -19,9 +20,11 @@ import com.esprim.student.service.StudentService;
 public class DepartmentController {
 
     private final StudentService studentService;
+    private final IDepartmentService departmentService;
 
-    public DepartmentController(StudentService studentService) {
+    public DepartmentController(StudentService studentService, IDepartmentService departmentService) {
         this.studentService = studentService;
+        this.departmentService = departmentService;
     }
 
     @PostMapping
@@ -41,5 +44,10 @@ public class DepartmentController {
                 .filter(d -> d.getId().equals(id))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Departement introuvable : " + id));
+    }
+
+    @GetMapping("/count")
+    public long countDepartments() {
+        return departmentService.countDepartments();
     }
 }
