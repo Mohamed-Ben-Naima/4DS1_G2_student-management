@@ -10,7 +10,7 @@ import com.esprim.student.repository.DepartmentRepository;
 import com.esprim.student.repository.StudentRepository;
 
 @Service
-public class StudentService {
+public class StudentService implements IStudentService {
 
     private final StudentRepository studentRepository;
     private final DepartmentRepository departmentRepository;
@@ -40,6 +40,11 @@ public class StudentService {
         }
         Student student = new Student(firstName, lastName, email, department);
         return studentRepository.save(student);
+    }
+
+    @Override
+    public Student getStudentByEmail(String email) {
+        return studentRepository.findByEmail(email).orElse(null);
     }
 
     public List<Department> findAllDepartments() {
