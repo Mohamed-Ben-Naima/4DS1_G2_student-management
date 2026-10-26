@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- settings-nexus.xml : utilisé par Jenkins avec "mvn -s settings-nexus.xml".
+     Aucun secret ici : les variables NEXUS_USER / NEXUS_PASS sont injectées
+     par withCredentials dans le Jenkinsfile (credential Jenkins "nexus"). -->
+<settings xmlns="http://maven.apache.org/SETTINGS/1.2.0">
+
+  <servers>
+    <server>
+      <id>deploymentRepo</id>                 <!-- même id que dans le pom.xml -->
+      <username>${env.NEXUS_USER}</username>
+      <password>${env.NEXUS_PASS}</password>
+    </server>
+  </servers>
+
+  <mirrors>
+    <mirror>
+      <!-- toutes les dépendances passent par le dépôt "group" de Nexus,
+           qui interroge son proxy maven-central et met en cache -->
+      <id>nexus-public</id>
+      <mirrorOf>central</mirrorOf>
+      <url>http://host.docker.internal:8081/repository/maven-public/</url>
+    </mirror>
+  </mirrors>
+
+</settings>

@@ -29,6 +29,28 @@ pipeline {
             }
         }
 
+        stage('Version') {
+            steps {
+                script {
+                    // version lue dans le pom, ex. 1.1-SNAPSHOT
+                    def pomVersion = sh(returnStdout: true, script:
+                        'mvn -q help:evaluate -Dexpression=project.version -DforceStdout'
+                    ).trim()
+                    if (env.BRANCHE == 'main') {
+                        // sur main : release unique et immuable, ex. 1.1.27
+                        env.VERSION = pomVersion.replace('-SNAPSHOT', '') +
+                                      '.' + env.BUILD_NUMBER
+                        sh "mvn -B -q versions:set -DnewVersion=${VERSION} " +
+                           "-DgenerateBackupPoms=false"
+                    } else {
+                        // sur une branche : on garde le snapshot
+                        env.VERSION = pomVersion
+                    }
+                }
+                echo "Version du livrable : ${VERSION}"
+            }
+        }
+
         stage('Build') {
             steps {
                 sh 'mvn -B clean package -DskipTests'
@@ -42,6 +64,16 @@ pipeline {
             post {
                 always {
                     junit 'target/surefire-reports/*.xml'
+                }
+            }
+        }
+
+        stage('Nexus') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'nexus',
+                                                  usernameVariable: 'NEXUS_USER',
+                                                  passwordVariable: 'NEXUS_PASS')]) {
+                    sh 'mvn -B deploy -DskipTests -s settings-nexus.xml'
                 }
             }
         }
@@ -82,7 +114,7 @@ pipeline {
     post {
         success {
             archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
-            echo "Succes : image ${IMAGE}:${TAG} publiee sur Docker Hub."
+            echo "Succès : version ${VERSION} sur Nexus, image ${IMAGE}:${TAG} sur Docker Hub."
         }
         failure {
             echo 'Echec : consulter la Console Output du stage en rouge.'
