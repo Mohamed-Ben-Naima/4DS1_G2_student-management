@@ -102,11 +102,24 @@ pipeline {
             }
         }
 
-        stage('Deploiement') {
+        stage('Déploiement Kubernetes') {
             when { expression { env.BRANCHE == 'main' } }
             steps {
-                sh 'docker compose pull app'
-                sh 'docker compose up -d'
+                // secret, configmap, MySQL : appliqués tels quels (idempotent)
+                sh '''
+                    kubectl apply -f k8s/mysql-secret.yaml \\
+                                  -f k8s/app-configmap.yaml \\
+                                  -f k8s/mysql.yaml
+                '''
+                // application : l'image du manifest est remplacée par le tag exact du build
+                sh """
+                    sed 's#image: .*student-management:.*#image: ${IMAGE}:${TAG}#' \\
+                        k8s/app.yaml | kubectl apply -f -
+                """
+                // attend la fin de la mise à jour progressive
+                // (échec si les nouveaux pods ne deviennent jamais prêts)
+                sh 'kubectl rollout status deployment/student-app --timeout=240s'
+                sh 'kubectl get pods -l app=student-app -o wide'
             }
         }
     }
