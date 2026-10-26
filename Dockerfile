@@ -4,10 +4,11 @@ LABEL maintainer="equipe-devops@esprit.tn"
 
 WORKDIR /app
 
-# Le jar est produit par "mvn package" dans le dossier target/
-COPY target/student-management-0.0.1-SNAPSHOT.jar app.jar
+# Le nom du jar change avec la version (1.1-SNAPSHOT, 1.1.27, ...) :
+# on copie "le" jar produit par Maven, quel que soit son nom
+COPY target/*.jar app.jar
 
-# Port defini dans application.properties (server.port=8089)
+# Port défini dans application.properties (server.port=8089)
 EXPOSE 8089
 
 ENTRYPOINT ["java", "-jar", "app.jar"]
